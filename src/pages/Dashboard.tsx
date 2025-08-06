@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import MigrationDialog from "@/components/MigrationDialog";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { 
   Wallet, 
   TrendingUp, 
@@ -16,6 +18,8 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const Dashboard = () => {
+  const { user, savingsAccounts, loans, transactions, loading, error } = useSupabaseData();
+
   // Mock data - replace with real data when Supabase is connected
   const savingsData = [
     { month: 'Jan', amount: 500000 },
@@ -57,6 +61,7 @@ const Dashboard = () => {
                 <PlusCircle className="w-4 h-4 mr-2" />
                 New Transaction
               </Button>
+              <MigrationDialog />
               <Button variant="hero">
                 <CreditCard className="w-4 h-4 mr-2" />
                 Apply for Loan
@@ -67,6 +72,19 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-6 py-8">
+        {/* Show loading or error states */}
+        {loading && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading your data...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+            <p className="text-destructive">Error loading data: {error}</p>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="hover:shadow-soft transition-shadow">
@@ -75,7 +93,9 @@ const Dashboard = () => {
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">UGX 1,800,000</div>
+              <div className="text-2xl font-bold text-primary">
+                UGX {savingsAccounts.reduce((total, account) => total + account.balance, 0).toLocaleString() || '1,800,000'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-success">+12.5%</span> from last month
               </p>
@@ -88,7 +108,9 @@ const Dashboard = () => {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">UGX 500,000</div>
+              <div className="text-2xl font-bold text-warning">
+                UGX {loans.reduce((total, loan) => total + loan.outstanding, 0).toLocaleString() || '500,000'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-success">-8.2%</span> remaining balance
               </p>
@@ -173,34 +195,34 @@ const Dashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Transactions</CardTitle>
+                {(transactions.length > 0 ? transactions.slice(0, 4) : recentTransactions).map((transaction) => (
                 <CardDescription>Your latest financial activities</CardDescription>
               </div>
               <Button variant="outline" size="sm">View All</Button>
-            </div>
-          </CardHeader>
+                        (transaction.type === 'deposit' || transaction.amount > 0) ? 'bg-success/10' :
+                        (transaction.type === 'withdrawal' || transaction.type === 'payment') ? 'bg-warning/10' : 'bg-primary/10'
           <CardContent>
-            <div className="space-y-4">
+                        {(transaction.type === 'deposit' || transaction.amount > 0) ? (
               {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
+                        ) : (transaction.type === 'withdrawal' || transaction.type === 'payment') ? (
+                          <ArrowUpRight className={`w-5 h-5 text-warning`} />
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      transaction.type === 'deposit' ? 'bg-success/10' :
+                          <CreditCard className={`w-5 h-5 text-primary`} />
                       transaction.type === 'loan' ? 'bg-primary/10' : 'bg-warning/10'
                     }`}>
                       {transaction.type === 'deposit' ? (
                         <ArrowDownRight className={`w-5 h-5 text-success`} />
                       ) : transaction.type === 'loan' ? (
                         <CreditCard className={`w-5 h-5 text-primary`} />
-                      ) : (
+                          {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString() : transaction.date}
                         <ArrowUpRight className={`w-5 h-5 text-warning`} />
                       )}
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        (transaction.amount || 0) > 0 ? 'text-success' : 'text-warning'
                         <Clock className="w-3 h-3" />
-                        {transaction.date}
+                        {(transaction.amount || 0) > 0 ? '+' : ''}UGX {Math.abs(transaction.amount || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>
