@@ -1,20 +1,45 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Wallet, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "@/components/ui/sonner";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase authentication
-    console.log("Login attempt:", { email, password });
+    setLoading(true);
+    setError("");
+
+    try {
+      const { user, error } = await signIn(email, password);
+      
+      if (error) {
+        setError(error.message);
+        toast.error("Login failed: " + error.message);
+      } else if (user) {
+        toast.success("Welcome back!");
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+      toast.error("Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,6 +66,12 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
@@ -50,6 +81,7 @@ const Login = () => {
                   placeholder="member@kawempesacco.ug"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -63,6 +95,7 @@ const Login = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                     required
                   />
                   <Button
@@ -71,6 +104,7 @@ const Login = () => {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -91,8 +125,8 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" variant="hero">
-                Sign In
+              <Button type="submit" className="w-full" variant="hero" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
@@ -103,6 +137,11 @@ const Login = () => {
                   Join SACCO
                 </Link>
               </p>
+              
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-2">Demo Account:</p>
+                <p className="text-xs font-mono">demo@kawempesacco.ug / password</p>
+              </div>
             </div>
           </CardContent>
         </Card>

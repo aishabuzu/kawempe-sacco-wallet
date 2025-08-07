@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -70,6 +71,12 @@ const MigrationDialog = () => {
   };
 
   const runMigration = async () => {
+    if (!isSupabaseConfigured()) {
+      setErrors(['Supabase is not configured. Please set up your Supabase credentials first.'])
+      toast.error("Supabase not configured")
+      return
+    }
+    
     setIsRunning(true);
     setProgress(0);
     setCurrentStep(0);
@@ -192,9 +199,9 @@ const MigrationDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" disabled={!isSupabaseConfigured()}>
           <Database className="w-4 h-4 mr-2" />
-          Migrate to Supabase
+          {isSupabaseConfigured() ? 'Migrate to Supabase' : 'Supabase Not Configured'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
@@ -266,9 +273,27 @@ const MigrationDialog = () => {
           {/* Migration Info */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">What will be migrated?</CardTitle>
+              <CardTitle className="text-lg">
+                {isSupabaseConfigured() ? 'What will be migrated?' : 'Setup Required'}
+              </CardTitle>
             </CardHeader>
             <CardContent>
+              {!isSupabaseConfigured() ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="font-medium">Supabase configuration required:</p>
+                      <ol className="list-decimal list-inside text-sm space-y-1">
+                        <li>Create a Supabase project at <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">supabase.com</a></li>
+                        <li>Copy your project URL and anon key</li>
+                        <li>Add them to your .env file</li>
+                        <li>Run the database migrations</li>
+                      </ol>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
                   <h4 className="font-medium">User Data:</h4>
@@ -288,6 +313,7 @@ const MigrationDialog = () => {
                   </ul>
                 </div>
               </div>
+              )}
             </CardContent>
           </Card>
 
@@ -296,7 +322,7 @@ const MigrationDialog = () => {
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isRunning}>
               Cancel
             </Button>
-            <Button onClick={runMigration} disabled={isRunning} variant="hero">
+            <Button onClick={runMigration} disabled={isRunning || !isSupabaseConfigured()} variant="hero">
               {isRunning ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -305,7 +331,7 @@ const MigrationDialog = () => {
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  Start Migration
+                  {isSupabaseConfigured() ? 'Start Migration' : 'Setup Required'}
                 </>
               )}
             </Button>

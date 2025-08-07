@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
   Wallet, 
@@ -14,10 +15,12 @@ import {
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/sonner";
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -28,6 +31,14 @@ const Navigation = () => {
 
   const isActive = (href: string) => location.pathname === href;
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  };
   return (
     <>
       {/* Desktop Sidebar */}
@@ -73,8 +84,12 @@ const Navigation = () => {
                 <User className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">John Doe</p>
-                <p className="text-xs text-muted-foreground">Member ID: KS-2024-001</p>
+                <p className="text-sm font-medium text-foreground">
+                  {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Member ID: {user?.memberId || 'Loading...'}
+                </p>
               </div>
             </div>
             
@@ -83,7 +98,12 @@ const Navigation = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="ghost" size="sm" className="w-full justify-start text-warning hover:text-warning">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-warning hover:text-warning"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
@@ -163,8 +183,10 @@ const Navigation = () => {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">KS-2024-001</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{user?.memberId || 'Loading...'}</p>
                   </div>
                 </div>
                 
@@ -173,7 +195,12 @@ const Navigation = () => {
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
                   </Button>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-warning hover:text-warning">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-start text-warning hover:text-warning"
+                    onClick={handleSignOut}
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>

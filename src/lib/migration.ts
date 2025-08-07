@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { isSupabaseConfigured } from './supabase'
 import type { User, SavingsAccount, Loan, Transaction, SavingsGoal } from './supabase'
 
 // Mock data interfaces (matching the current app structure)
@@ -63,6 +64,11 @@ export class DataMigration {
   }
 
   async getCurrentUser(): Promise<User | null> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, cannot fetch user data')
+      return null
+    }
+    
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
@@ -81,6 +87,11 @@ export class DataMigration {
   }
 
   async migrateUser(mockUser: MockUser): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, skipping user migration')
+      return false
+    }
+    
     try {
       // First, create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -128,6 +139,11 @@ export class DataMigration {
   }
 
   async migrateSavingsAccounts(mockAccounts: MockSavingsAccount[]): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, skipping savings accounts migration')
+      return false
+    }
+    
     if (!this.userId) {
       console.error('No user ID available for migration')
       return false
@@ -160,6 +176,11 @@ export class DataMigration {
   }
 
   async migrateLoans(mockLoans: MockLoan[]): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, skipping loans migration')
+      return false
+    }
+    
     if (!this.userId) {
       console.error('No user ID available for migration')
       return false
@@ -195,6 +216,11 @@ export class DataMigration {
   }
 
   async migrateTransactions(mockTransactions: MockTransaction[]): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, skipping transactions migration')
+      return false
+    }
+    
     if (!this.userId) {
       console.error('No user ID available for migration')
       return false
@@ -230,6 +256,11 @@ export class DataMigration {
   }
 
   async migrateSavingsGoals(mockGoals: MockSavingsGoal[]): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, skipping savings goals migration')
+      return false
+    }
+    
     if (!this.userId) {
       console.error('No user ID available for migration')
       return false
