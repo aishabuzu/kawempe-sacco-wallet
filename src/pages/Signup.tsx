@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,13 @@ const Signup = () => {
     confirmPassword: ""
   });
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -41,9 +48,33 @@ const Signup = () => {
       return;
     }
 
+    // Validate all required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'nationalId', 'occupation', 'password'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     // Validate password strength
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long");
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
@@ -65,7 +96,7 @@ const Signup = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      setError("Account creation failed. Please try again.");
       toast.error("Signup failed");
     } finally {
       setLoading(false);
@@ -253,7 +284,7 @@ const Signup = () => {
 
               <div className="flex items-center space-x-2">
                 <input type="checkbox" id="terms" className="rounded" disabled={loading} required />
-                <Label htmlFor="terms" className="text-sm">
+                <label htmlFor="terms" className="text-sm">
                   I agree to the{" "}
                   <Link to="/terms" className="text-primary hover:underline">
                     Terms of Service
@@ -262,7 +293,7 @@ const Signup = () => {
                   <Link to="/privacy" className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
-                </Label>
+                </label>
               </div>
 
               <Button type="submit" className="w-full" variant="hero" disabled={loading}>

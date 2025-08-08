@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface MigrationStep {
 }
 
 const MigrationDialog = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -76,6 +78,12 @@ const MigrationDialog = () => {
       toast.error("Supabase not configured")
       return
     }
+
+    if (!user) {
+      setErrors(['Please log in to migrate your data.'])
+      toast.error("Supabase not configured")
+      return
+    }
     
     setIsRunning(true);
     setProgress(0);
@@ -93,7 +101,7 @@ const MigrationDialog = () => {
       setCurrentStep(0);
       updateStepStatus(0, 'running');
       setProgress(10);
-
+      
       const userSuccess = await migration.migrateUser(mockData.user);
       if (!userSuccess) {
         updateStepStatus(0, 'failed');
@@ -168,6 +176,10 @@ const MigrationDialog = () => {
     } finally {
       setIsRunning(false);
     }
+  };
+
+  const handleStartMigration = () => {
+    runMigration();
   };
 
   const getStatusIcon = (status: MigrationStep['status']) => {
@@ -322,7 +334,7 @@ const MigrationDialog = () => {
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isRunning}>
               Cancel
             </Button>
-            <Button onClick={runMigration} disabled={isRunning || !isSupabaseConfigured()} variant="hero">
+            <Button onClick={handleStartMigration} disabled={isRunning || !isSupabaseConfigured() || !user} variant="hero">
               {isRunning ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -331,7 +343,7 @@ const MigrationDialog = () => {
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  {isSupabaseConfigured() ? 'Start Migration' : 'Setup Required'}
+                  {isSupabaseConfigured() && user ? 'Start Migration' : 'Setup Required'}
                 </>
               )}
             </Button>

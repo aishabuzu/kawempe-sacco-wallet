@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { authService, type AuthUser } from '@/lib/auth'
 
 interface AuthContextType {
@@ -25,7 +25,7 @@ export function useAuth() {
   return context
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -33,6 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial user
     authService.getCurrentUser().then(user => {
       setUser(user)
+      setLoading(false)
+    }).catch(() => {
       setLoading(false)
     })
 
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => subscription?.data?.subscription?.unsubscribe?.()
   }, [])
 
   const signIn = async (email: string, password: string) => {

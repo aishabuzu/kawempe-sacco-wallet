@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,25 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
+      // Basic validation
+      if (!email || !password) {
+        setError("Please fill in all fields");
+        return;
+      }
+
       const { user, error } = await signIn(email, password);
       
       if (error) {
@@ -35,7 +48,7 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      setError("Login failed. Please try again.");
       toast.error("Login failed");
     } finally {
       setLoading(false);
@@ -92,7 +105,7 @@ const Login = () => {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="demo@kawempesacco.ug"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
@@ -118,7 +131,7 @@ const Login = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <input type="checkbox" id="remember" className="rounded" />
-                  <Label htmlFor="remember" className="text-sm">Remember me</Label>
+                  <label htmlFor="remember" className="text-sm">Remember me</label>
                 </div>
                 <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
@@ -140,7 +153,7 @@ const Login = () => {
               
               <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-2">Demo Account:</p>
-                <p className="text-xs font-mono">demo@kawempesacco.ug / password</p>
+                <p className="text-xs font-mono">Email: demo@kawempesacco.ug<br />Password: password</p>
               </div>
             </div>
           </CardContent>

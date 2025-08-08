@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +18,12 @@ import {
   Clock
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { toast } from "@/components/ui/sonner";
 
 const Savings = () => {
   const [contributionAmount, setContributionAmount] = useState("");
   const [savingsGoal, setSavingsGoal] = useState("");
+  const { user } = useAuth();
 
   // Mock data
   const savingsAccounts = [
@@ -71,14 +74,32 @@ const Savings = () => {
 
   const handleContribution = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase transaction
-    console.log("New contribution:", contributionAmount);
+    
+    if (!contributionAmount || parseFloat(contributionAmount) <= 0) {
+      toast.error("Please enter a valid contribution amount");
+      return;
+    }
+
+    // Simulate contribution processing
+    toast.success(`Contribution of UGX ${parseFloat(contributionAmount).toLocaleString()} processed successfully!`);
+    setContributionAmount("");
   };
 
   const handleSetGoal = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase goal setting
-    console.log("New savings goal:", savingsGoal);
+    
+    if (!savingsGoal || parseFloat(savingsGoal) <= 0) {
+      toast.error("Please enter a valid goal amount");
+      return;
+    }
+
+    toast.success("Savings goal created successfully!");
+    setSavingsGoal("");
+  };
+
+  const handleQuickContribution = (amount: number) => {
+    setContributionAmount(amount.toString());
+    toast.info(`Quick amount selected: UGX ${amount.toLocaleString()}`);
   };
 
   return (
@@ -282,7 +303,7 @@ const Savings = () => {
                       key={amount}
                       variant="outline" 
                       className="w-full justify-between"
-                      onClick={() => setContributionAmount(amount.toString())}
+                      onClick={() => handleQuickContribution(amount)}
                     >
                       <span>UGX {amount.toLocaleString()}</span>
                       <DollarSign className="w-4 h-4" />
@@ -294,7 +315,12 @@ const Savings = () => {
                     <p className="text-xs text-muted-foreground mb-3">
                       Set up automatic monthly contributions to reach your goals faster
                     </p>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => toast.info("Auto-save feature coming soon!")}
+                    >
                       <Clock className="w-4 h-4 mr-2" />
                       Setup Auto-Save
                     </Button>

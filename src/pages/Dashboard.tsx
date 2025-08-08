@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +21,12 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import MigrationDialog from "@/components/MigrationDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
+  const navigate = useNavigate();
 
   // Mock data - in production this would come from Supabase
   const accountSummary = {
@@ -79,6 +82,28 @@ const Dashboard = () => {
   const formatCurrency = (amount: number) => {
     if (!showBalance) return "UGX ****";
     return `UGX ${amount.toLocaleString()}`;
+  };
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'contribute':
+        navigate('/savings');
+        toast.info("Redirecting to savings page...");
+        break;
+      case 'loan':
+        navigate('/loans');
+        toast.info("Redirecting to loans page...");
+        break;
+      case 'goal':
+        navigate('/savings');
+        toast.info("Redirecting to set savings goals...");
+        break;
+      case 'payment':
+        toast.info("Payment scheduling feature coming soon!");
+        break;
+      default:
+        toast.info("Feature coming soon!");
+    }
   };
 
   return (
@@ -290,19 +315,19 @@ const Dashboard = () => {
               <CardDescription>Common tasks</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => handleQuickAction('contribute')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Make Contribution
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => handleQuickAction('loan')}>
                 <CreditCard className="w-4 h-4 mr-2" />
                 Apply for Loan
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => handleQuickAction('goal')}>
                 <Target className="w-4 h-4 mr-2" />
                 Set Savings Goal
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" onClick={() => handleQuickAction('payment')}>
                 <Calendar className="w-4 h-4 mr-2" />
                 Schedule Payment
               </Button>
@@ -315,7 +340,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground mb-3">
                   You're eligible for premium loan rates and exclusive savings products.
                 </p>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => toast.info("Member benefits details coming soon!")}>
                   Learn More
                 </Button>
               </div>

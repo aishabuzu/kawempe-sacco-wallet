@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
+import { useNavigate } from "react-router-dom";
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+
+  const navigate = useNavigate();
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -35,10 +38,12 @@ const Navigation = () => {
     try {
       await signOut();
       toast.success("Signed out successfully");
+      navigate("/login");
     } catch (error) {
       toast.error("Error signing out");
     }
   };
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -94,7 +99,7 @@ const Navigation = () => {
             </div>
             
             <div className="mt-3 space-y-1">
-              <Button variant="ghost" size="sm" className="w-full justify-start">
+              <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => toast.info("Settings coming soon!")}>
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
@@ -191,7 +196,7 @@ const Navigation = () => {
                 </div>
                 
                 <div className="mt-3 space-y-1">
-                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                  <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => toast.info("Settings coming soon!")}>
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
                   </Button>

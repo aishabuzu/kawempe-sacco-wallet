@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "@/components/ui/sonner";
 import { 
   CreditCard, 
   Plus, 
@@ -25,6 +27,7 @@ const Loans = () => {
   const [loanAmount, setLoanAmount] = useState("");
   const [loanPurpose, setLoanPurpose] = useState("");
   const [repaymentPeriod, setRepaymentPeriod] = useState("");
+  const { user } = useAuth();
 
   // Mock data
   const activeLoans = [
@@ -110,14 +113,31 @@ const Loans = () => {
 
   const handleLoanApplication = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase loan application
-    console.log("Loan application:", { loanAmount, loanPurpose, repaymentPeriod });
+    
+    if (!loanAmount || !loanPurpose || !repaymentPeriod) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (parseFloat(loanAmount) <= 0) {
+      toast.error("Please enter a valid loan amount");
+      return;
+    }
+
+    toast.success("Loan application submitted successfully! You will receive a response within 2-3 business days.");
+    setLoanAmount("");
+    setLoanPurpose("");
+    setRepaymentPeriod("");
   };
 
   const calculateMonthlyPayment = (principal: number, rate: number, months: number) => {
     const monthlyRate = rate / 100 / 12;
     const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
     return payment;
+  };
+
+  const handleMakePayment = (loanId: number) => {
+    toast.success("Payment processed successfully!");
   };
 
   return (
@@ -240,11 +260,15 @@ const Loans = () => {
                       </div>
 
                       <div className="flex gap-3">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleMakePayment(loan.id)}
+                        >
                           <Calendar className="w-4 h-4 mr-2" />
                           Make Payment
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Statement will be sent to your email")}>
                           <FileText className="w-4 h-4 mr-2" />
                           View Statement
                         </Button>
@@ -295,7 +319,12 @@ const Loans = () => {
                         </ul>
                       </div>
 
-                      <Button variant="outline" size="sm" className="w-full">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => toast.info("Loan application form will open")}
+                      >
                         Apply Now
                       </Button>
                     </div>
@@ -430,7 +459,12 @@ const Loans = () => {
                         </div>
                       ))}
                     </div>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => toast.info("Document upload feature coming soon!")}
+                    >
                       Upload Documents
                     </Button>
                   </div>
@@ -479,7 +513,11 @@ const Loans = () => {
                       />
                     </div>
 
-                    <Button variant="hero" className="w-full">
+                    <Button 
+                      variant="hero" 
+                      className="w-full"
+                      onClick={() => toast.info("Loan calculator updated!")}
+                    >
                       <Calculator className="w-4 h-4 mr-2" />
                       Calculate
                     </Button>

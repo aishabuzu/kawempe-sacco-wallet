@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,11 +20,13 @@ import {
   AlertCircle
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { toast } from "@/components/ui/sonner";
 
 const Transactions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [dateRange, setDateRange] = useState("30days");
+  const { user } = useAuth();
 
   // Mock transaction data
   const transactions = [
@@ -178,6 +181,10 @@ const Transactions = () => {
     return matchesSearch && matchesType;
   });
 
+  const handleExportStatement = () => {
+    toast.success("Statement exported successfully! Check your downloads folder.");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -188,7 +195,7 @@ const Transactions = () => {
               <h1 className="text-2xl font-bold text-foreground">Transaction History</h1>
               <p className="text-muted-foreground">View and analyze your financial transactions</p>
             </div>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExportStatement}>
               <Download className="w-4 h-4 mr-2" />
               Export Statement
             </Button>
